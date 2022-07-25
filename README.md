@@ -89,6 +89,7 @@ Acronym | Meaning
 ---|---
 ALS | Ambient Light Sensor
 BOM | Bill of Materials
+CCM | Configuration and Change Management
 COB | Close of Business
 HLD | High-Level Design
 HW  | Hardware
@@ -102,9 +103,9 @@ SW  | Software
 
 ## BOM
 This the initial BOM for the main components identified thus far. Following the
-component research scheduled to be conducted in week 1, the BOM will be populated
-more and then by COB week 2, the full BOM will be compiled following the
-schematic capture activity.
+component research scheduled to be conducted in week 1, the BOM will be
+populated more and then by COB week 2, the full BOM will be compiled following
+the schematic capture activity.
 
 ID | Item | Manufacturer | Qty | Cost | Description
 ---|---|---|---|---|---
@@ -117,13 +118,24 @@ I use Linux as my main operating system, so all examples, instructions,
 screenshots etc. will be based on `Ubuntu 20.04` (unless I upgrade to
 `Ubuntu 22.04` in the meantime).
 
-### IDE
-Most SW developers will be familiar with editors such as `Eclipse`, `VSCode` and `Notepad++`.
-Since I use Linux and I'm a strong advocate for free OSS, I personally use `VSCodium`.
+### Configuration and Change Management (CCM)
+The project will be configured
+[here](https://github.com/Mayannaise/intellilight).
 
-There is a `VSCodium` extension available to help develop and debug applications for the
-`ESP32` range of MCUs. This can be installed by searching for `Espressif IDF` in the "Extensions"
-sidebar from within `VSCodium`.
+This will include all aspects of the project such as the research results,
+requirements, design, tests, documentation, source code, schematics and models.
+
+Any third party and open source code will be identifed clearly and the licences
+included.
+
+### IDE
+Most SW developers will be familiar with editors such as `Eclipse`, `VSCode` and
+`Notepad++`. Since I use Linux and I'm a strong advocate for free OSS, I
+personally use `VSCodium`.
+
+There is a `VSCodium` extension available to help develop and debug applications
+for the `ESP32` range of MCUs. This can be installed by searching for
+`Espressif IDF` in the "Extensions" sidebar from within `VSCodium`.
 
 A spellchecker plugin should also be used.
 
