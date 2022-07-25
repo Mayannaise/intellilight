@@ -7,7 +7,7 @@ intelligent smart bulb controller project.
 
 ## Week 2 - Design Prototype
 
-## Week 3 - Setting up the Environment
+## Week 3 - Sourcing
 
 ## Week 4 - Build Prototype (Pt 1)
 
