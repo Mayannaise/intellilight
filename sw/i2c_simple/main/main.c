@@ -46,7 +46,7 @@ static esp_err_t i2c_master_init(void)
  */
 void app_main(void)
 {
-    uint16_t value = 0;
+    uint16_t red_value, green_value, blue_value;
 
     /* setup I2C bus as master */
     ESP_ERROR_CHECK(i2c_master_init());
@@ -77,8 +77,10 @@ void app_main(void)
     while (true)
     {
         vTaskDelay(1000 / portTICK_RATE_MS);
-        //value = veml3328_read_channel(VEML3328_COMMAND_R_DATA);
-        ESP_LOGI(TAG, "Red value = %d", value);
+        red_value   = veml3328_read_channel(VEML3328_COMMAND_R_DATA);
+        green_value = veml3328_read_channel(VEML3328_COMMAND_G_DATA);
+        blue_value  = veml3328_read_channel(VEML3328_COMMAND_B_DATA);
+        ESP_LOGI(TAG, "RGB = %d,%d,%d", red_value, green_value, blue_value);
     }
 
     /* shutdown I2C master */
