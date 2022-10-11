@@ -22,7 +22,7 @@ esp_err_t pca9554_configure(void)
 
 esp_err_t pca9554_enable_led(const uint8_t led_pin, const bool on)
 {
-    const uint8_t write_buf[2] = {PCA9554_OUTPUT_PORT_REG, (uint8_t)(1U << led_pin)};
+    const uint8_t write_buf[2] = {PCA9554_OUTPUT_PORT_REG, (uint8_t)(on << led_pin)};
 
     return i2c_master_write_to_device(
         I2C_MASTER_NUM, PCA9554_I2C_SLAVE_ADDR,

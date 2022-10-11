@@ -52,11 +52,24 @@ void app_main(void)
     ESP_ERROR_CHECK(i2c_master_init());
     ESP_LOGI(TAG, "I2C initialised successfully");
 
-    /* turn on red LED */
+    /* blink the LEDs */
+    ESP_LOGI(TAG, "Configuring RGB LED over I2C");
     ESP_ERROR_CHECK(pca9554_configure());
+
     ESP_ERROR_CHECK(pca9554_enable_led(PCA9554_RED_LED_GPIO_PIN, true));
+    vTaskDelay(500 / portTICK_RATE_MS);
+    ESP_ERROR_CHECK(pca9554_enable_led(PCA9554_RED_LED_GPIO_PIN, false));
+
+    ESP_ERROR_CHECK(pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, true));
+    vTaskDelay(500 / portTICK_RATE_MS);
+    ESP_ERROR_CHECK(pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, false));
+
+    ESP_ERROR_CHECK(pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true));
+    vTaskDelay(500 / portTICK_RATE_MS);
+    ESP_ERROR_CHECK(pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, false));
 
     /* setup colour sensor */
+    ESP_LOGI(TAG, "Configuring colour sensor over I2C");
     ESP_ERROR_CHECK(veml3328_send_command(0x11, 0x80));
     ESP_ERROR_CHECK(veml3328_send_command(0x10, 0x00));
 
