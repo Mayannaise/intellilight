@@ -12,11 +12,20 @@
 #define PCA9554_POLARITY_INVERSION_REG  0x02    /*!< Read/write register to control the polarity of the input port regisister */
 #define PCA9554_CONFIGURATION_REG       0x03    /*!< Control the input/output state of the GPIO pins */
 
+/* GPIO pin numbers for the RGB LED on the VEML3328 colour sensor board */
 #define PCA9554_IR_LED_GPIO_PIN         0x02    /*!< GPIO pin number to control IR    LED (VSMY1850X01) */
 #define PCA9554_RED_LED_GPIO_PIN        0x03    /*!< GPIO pin number to control red   LED (VEML3328)    */
 #define PCA9554_GREEN_LED_GPIO_PIN      0x04    /*!< GPIO pin number to control green LED (VEML3328)    */
 #define PCA9554_BLUE_LED_GPIO_PIN       0x05    /*!< GPIO pin number to control blue  LED (VEML3328)    */
 #define PCA9554_WHITE_LED_GPIO_PIN      0x06    /*!< GPIO pin number to control white LED (VLMW51Q2R3)  */
+
+/* GPIO pin numbers for the LED arrows on the VCNL4035X01 gesture board */
+#define PCA9554_GESTURE_LEFT_ARROW_GPIO_PIN         0x00    /*!< GPIO pin number to control left  arrow LED array */
+#define PCA9554_GESTURE_RIGHT_ARROW_GPIO_PIN        0x01    /*!< GPIO pin number to control right arrow LED array */
+#define PCA9554_GESTURE_UP_ARROW_GPIO_PIN           0x02    /*!< GPIO pin number to control up    arrow LED array */
+#define PCA9554_GESTURE_DOWN_ARROW_GPIO_PIN         0x03    /*!< GPIO pin number to control down  arrow LED array */
+#define PCA9554_GESTURE_CLOSE_ENOUGH_GPIO_PIN       0x04    /*!< GPIO pin number to control close enough LED array */
+#define PCA9554_GESTURE_ENTER_GPIO_PIN              0x05    /*!< GPIO pin number to control enter LED array */
 
 
 /**

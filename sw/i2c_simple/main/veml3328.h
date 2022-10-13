@@ -16,6 +16,12 @@
 
 
 /**
+ * @brief Configure the colour sensor
+ * @return ESP error code
+ */
+extern esp_err_t veml3328_configure(void);
+
+/**
  * @brief Read from one of the colour sensor channels (C,R,G,B,IR)
  * @param channel Channel register from which to read
  * @return Colour value read from sensor

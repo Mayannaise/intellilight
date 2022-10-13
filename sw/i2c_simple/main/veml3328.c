@@ -10,6 +10,14 @@
 #include "veml3328.h"
 
 
+esp_err_t veml3328_configure(void)
+{
+    esp_err_t err = veml3328_send_command(0x11, 0x80);
+    err |= veml3328_send_command(0x10, 0x00);
+
+    return err;
+}
+
 uint16_t veml3328_read_channel(const uint8_t channel)
 {
     uint8_t rx_data[2];

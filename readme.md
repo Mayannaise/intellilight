@@ -87,19 +87,21 @@ I designed and built from scratch as documented [here](https://vimeo.com/1013396
 ## Acronyms and Abbreviations
 Acronym | Meaning
 ---|---
-ALS | Ambient Light Sensor
-BOM | Bill of Materials
-CCM | Configuration and Change Management
-COB | Close of Business
-HLD | High-Level Design
-HW  | Hardware
-I2C | Inter-Integrated Circuit (protocol)
-IoT | Internet of Things
-IDE | Integrated Development Environment
-LLD | Low-Level Design
-MCU | Micro-controller
-OSS | Open Source Software
-SW  | Software
+ALS  | Ambient Light Sensor
+BOM  | Bill of Materials
+CCM  | Configuration and Change Management
+COB  | Close of Business
+FOSS | Free Open Source Software
+HLD  | High-Level Design
+HW   | Hardware
+I2C  | Inter-Integrated Circuit (protocol)
+IoT  | Internet of Things
+IDE  | Integrated Development Environment
+LLD  | Low-Level Design
+MCU  | Micro-controller
+OSS  | Open Source Software
+SDK  | Software Development Kit
+SW   | Software
 
 ## BOM
 This the initial BOM for the main components identified thus far. Following the
