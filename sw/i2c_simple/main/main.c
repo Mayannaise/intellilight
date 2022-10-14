@@ -4,6 +4,7 @@
  
 /* system includes */
 #include <stdio.h>
+#include <string.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_log.h>
@@ -12,10 +13,14 @@
 /* local includes */
 #include "i2c_common.h"
 #include "pca9554.h"
+#include "tplink_kasa.h"
 #include "vcnl4035.h"
 #include "veml3328.h"
 #include "wifi.h"
 
+
+
+static bool smartbulb_on = false;
 
 /**
  * @brief Application main entry point
@@ -51,17 +56,32 @@ void app_main(void)
     pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, false);
 
     /* connect to the configured WiFi network */
-    connect_to_wifi();
+    wifi_connect();
 
-    /* periodically read from the sensors every second */
+    /* turn off smart bulb to begin with */
+    tplink_kasa_encrypt_and_send(tplink_kasa_turn_off);
+    smartbulb_on = false;
+
+    /* periodically read from the sensors */
     while (true)
     {
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_RATE_MS);
+
         red_value   = veml3328_read_channel(VEML3328_COMMAND_R_DATA);
         green_value = veml3328_read_channel(VEML3328_COMMAND_G_DATA);
         blue_value  = veml3328_read_channel(VEML3328_COMMAND_B_DATA);
         proximity   = vcnl4035_read_proximity();
         ESP_LOGI(log_tag, "RGB=%d,%d,%d P=%d", red_value, green_value, blue_value, proximity);
+
+        /* turn on smartbulb and green LED when user is close to the sensor */
+        const bool requested_on = proximity > 10;
+        if (requested_on != smartbulb_on)
+        {
+            ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
+            pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, requested_on);
+            tplink_kasa_encrypt_and_send(requested_on ? tplink_kasa_turn_on : tplink_kasa_turn_off);
+            smartbulb_on = requested_on;
+        }
     }
 
     /* shutdown I2C master */
