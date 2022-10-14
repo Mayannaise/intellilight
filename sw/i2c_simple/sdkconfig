@@ -133,11 +133,13 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# Example Configuration
+# Project Configuration
 #
 CONFIG_I2C_MASTER_SCL=22
 CONFIG_I2C_MASTER_SDA=21
-# end of Example Configuration
+CONFIG_WIFI_SSID="Prince Tirian"
+CONFIG_WIFI_PASSWORD="qwerty12345!"
+# end of Project Configuration
 
 #
 # Compiler options

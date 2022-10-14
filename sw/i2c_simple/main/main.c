@@ -14,6 +14,7 @@
 #include "pca9554.h"
 #include "vcnl4035.h"
 #include "veml3328.h"
+#include "wifi.h"
 
 
 /**
@@ -48,6 +49,9 @@ void app_main(void)
     pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true);
     vTaskDelay(500 / portTICK_RATE_MS);
     pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, false);
+
+    /* connect to the configured WiFi network */
+    connect_to_wifi();
 
     /* periodically read from the sensors every second */
     while (true)

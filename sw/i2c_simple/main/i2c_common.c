@@ -9,6 +9,10 @@
 #include "i2c_common.h"
 
 
+#define I2C_MASTER_FREQ_HZ          400000    /*!< I2C master clock frequency = 400kHz */
+#define I2C_MASTER_TX_BUF_DISABLE   0         /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_RX_BUF_DISABLE   0         /*!< I2C master doesn't need buffer */
+
 /**
  * @brief I2C master initialization
  * @return
@@ -22,8 +26,8 @@ esp_err_t i2c_master_init(void)
 
     i2c_config_t conf = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = I2C_MASTER_SDA_IO,
-        .scl_io_num = I2C_MASTER_SCL_IO,
+        .sda_io_num = CONFIG_I2C_MASTER_SDA,
+        .scl_io_num = CONFIG_I2C_MASTER_SCL,
         .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_pullup_en = GPIO_PULLUP_DISABLE,
         .master.clk_speed = I2C_MASTER_FREQ_HZ,

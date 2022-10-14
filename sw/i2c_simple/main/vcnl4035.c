@@ -36,7 +36,10 @@ static esp_err_t vcnl4035_configure_ps(void)
 
 esp_err_t vcnl4035_configure(void)
 {
-    return (vcnl4035_configure_ps() | vcnl4035_configure_als());
+    const esp_err_t ps_err = vcnl4035_configure_ps();
+    const esp_err_t als_err = vcnl4035_configure_als();
+
+    return als_err | ps_err;
 }
 
 uint16_t vcnl4035_read_ambient_light(void)
