@@ -74,7 +74,8 @@ void app_main(void)
     }
 
     /* turn off smart bulb to begin with */
-    tplink_kasa_encrypt_and_send(tplink_kasa_turn_off);
+    snprintf(command, sizeof(command), tplink_kasa_on_off, 0);
+    tplink_kasa_encrypt_and_send(command);
     current_state.on_off = false;
 
     /* periodically read from the sensors */
@@ -95,8 +96,9 @@ void app_main(void)
         if (requested_on != current_state.on_off)
         {
             ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
+            snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
+            tplink_kasa_encrypt_and_send(command);
             pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, requested_on);
-            tplink_kasa_encrypt_and_send(requested_on ? tplink_kasa_turn_on : tplink_kasa_turn_off);
             current_state.on_off = requested_on;
         }
 

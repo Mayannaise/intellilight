@@ -14,9 +14,8 @@
 #include "wifi.h"
 
 
-extern const char * tplink_kasa_turn_on;       /*!< Unencrypted JSON string to turn on Kasa smartbulb */
-extern const char * tplink_kasa_turn_off;      /*!< Unencrypted JSON string to turn off Kasa smartbulb */
-extern const char * tplink_kasa_brightness;    /*!< Unencrypted JSON string to set the brightness of a Kasa smartbulb */
+extern const char * tplink_kasa_on_off;       /*!< Unencrypted JSON string to set the on/off state of a Kasa smartbulb */
+extern const char * tplink_kasa_brightness;   /*!< Unencrypted JSON string to set the brightness of a Kasa smartbulb */
 
 /**
  * @brief XOR Autokey Cipher with starting key of 171
