@@ -20,9 +20,9 @@ struct rgb_colour
  */
 struct hsv_colour
 {
-    unsigned char h;
-    unsigned char s;
-    unsigned char v;
+    float h;
+    float s;
+    float v;
 };
 
 /**

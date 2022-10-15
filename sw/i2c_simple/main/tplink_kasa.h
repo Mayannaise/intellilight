@@ -16,6 +16,7 @@
 
 extern const char * tplink_kasa_on_off;       /*!< Unencrypted JSON string to set the on/off state of a Kasa smartbulb */
 extern const char * tplink_kasa_brightness;   /*!< Unencrypted JSON string to set the brightness of a Kasa smartbulb */
+extern const char * tplink_kasa_hsv;          /*!< Unencrypted JSON string to set the colour of a Kasa smartbulb */
 
 /**
  * @brief XOR Autokey Cipher with starting key of 171

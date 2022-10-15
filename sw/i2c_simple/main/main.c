@@ -26,8 +26,9 @@
  */
 struct smart_bulb_state
 {
-    bool     on_off;      /*!< Current on/off state of the smartbulb */
-    uint8_t  brightness;  /*!< Current brightness (in percent) of the smartbulb */
+    bool on_off;            /*!< Current on/off state of the smartbulb */
+    uint8_t brightness;     /*!< Current brightness (in percent) of the smartbulb */
+    struct hsv_colour hsv;  /*!< Current colour (in HSV) of the smartbulb */
 } current_state;
 
 /**
@@ -51,23 +52,13 @@ void app_main(void)
     ESP_ERROR_CHECK(pca9554_configure());   /* RGB LED and arrow LEDs */
     ESP_ERROR_CHECK(veml3328_configure());  /* colour sensor */
 
-    /* blink the red LED (also "down arrow" gesture) */
+    /* connect to the configured WiFi network */
     pca9554_enable_led(PCA9554_RED_LED_GPIO_PIN, true);
-    vTaskDelay(500 / portTICK_RATE_MS);
-    pca9554_enable_led(PCA9554_RED_LED_GPIO_PIN, false);
-
-    /* blink the green LED (also "close enough" gesture) */
-    pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, true);
-    vTaskDelay(500 / portTICK_RATE_MS);
-    pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, false);
-
-    /* blink the blue LED (also "enter" gesture) */
-    pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true);
-    vTaskDelay(500 / portTICK_RATE_MS);
-    pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, false);
-
-    /* connect to the configured WiFi network and wait till connected */
     wifi_connect();
+    vTaskDelay(1000 / portTICK_RATE_MS);
+
+    /* wait till netowrk is ready */
+    pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true);
     ESP_LOGI(log_tag, "Waiting for IP address");
     while ( !wifi_network_ready() ) {
         vTaskDelay(500 / portTICK_RATE_MS);
@@ -77,6 +68,11 @@ void app_main(void)
     snprintf(command, sizeof(command), tplink_kasa_on_off, 0);
     tplink_kasa_encrypt_and_send(command);
     current_state.on_off = false;
+
+    /* everything ready, flash the green LED */
+    pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, true);
+    vTaskDelay(1000 / portTICK_RATE_MS);
+    pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, false);
 
     /* periodically read from the sensors */
     while (true)
@@ -91,25 +87,36 @@ void app_main(void)
         ambient = vcnl4035_read_ambient_light();
         ESP_LOGD(log_tag, "RGB=%d,%d,%d P=%d A=%d", rgb.r, rgb.g, rgb.b, proximity, ambient);
 
-        /* turn on smartbulb (and green LED) when user is close to the sensor */
+        /* turn on smartbulb based on the proximity sensor value */
+        /* i.e. when user is close to the sensor */
         const bool requested_on = proximity > 10;
         if (requested_on != current_state.on_off)
         {
             ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
             snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
             tplink_kasa_encrypt_and_send(command);
-            pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, requested_on);
             current_state.on_off = requested_on;
         }
 
-        /* set smart bulb brightness if new brightness is > 5% different from current brightness */
-        const uint8_t brightness = fmin((ambient / 30.0), 100.0);
+        /* set smart bulb brightness based on ambient light level */
+        /* only update if new brightness is > 5% different from current brightness */
+        const uint8_t brightness = fmin((ambient / 10.0), 100.0);
         if ( abs(brightness - current_state.brightness) > 5 )
         {
             ESP_LOGI(log_tag, "Setting smartbulb brightness to %d%%", brightness);   
             snprintf(command, sizeof(command), tplink_kasa_brightness, brightness);
             tplink_kasa_encrypt_and_send(command);
             current_state.brightness = brightness;
+        }
+
+        /* set smart bulb colour (hue/saturation) based on measured room light colour */
+        /* only update if new hue is > 5 degrees different from current hue */
+        if ( abs(current_state.hsv.h - hsv.h) > 5 )
+        {
+            ESP_LOGI(log_tag, "Setting smartbulb hue to %.0f degrees", hsv.h);   
+            snprintf(command, sizeof(command), tplink_kasa_hsv, hsv.h, 100);
+            tplink_kasa_encrypt_and_send(command);
+            current_state.hsv = hsv;
         }
     }
 
