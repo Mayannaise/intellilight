@@ -2,6 +2,10 @@
  * @file I2C driver for the VCNL4035 Proximity Sensor (PS) and Ambient Light Sensor (ALS)
  */
 
+#ifndef INTELLILIGHT_VCNL4035_H
+#define INTELLILIGHT_VCNL4035_H
+
+
 /* system includes */
 #include "esp_err.h"
 
@@ -37,3 +41,5 @@ extern uint16_t vcnl4035_read_ambient_light(void);
  * @return Raw reading from sensor
  */
 extern uint16_t vcnl4035_read_proximity(void);
+
+#endif

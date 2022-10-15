@@ -32,6 +32,15 @@ uint16_t veml3328_read_channel(const uint8_t channel)
     return ((uint16_t)rx_data[1] << 8) | (uint16_t)rx_data[0];
 }
 
+struct rgb_colour veml3328_read_colour(void)
+{
+    struct rgb_colour rgb;
+    rgb.r = veml3328_read_channel(VEML3328_COMMAND_R_DATA);
+    rgb.g = veml3328_read_channel(VEML3328_COMMAND_G_DATA);
+    rgb.b = veml3328_read_channel(VEML3328_COMMAND_B_DATA);
+    return rgb;
+}
+
 esp_err_t veml3328_send_command(const uint8_t data1, const uint8_t data2)
 {
     const uint8_t write_buf[3] = {VEML3328_COMMAND_CONFIG, data1, data2};

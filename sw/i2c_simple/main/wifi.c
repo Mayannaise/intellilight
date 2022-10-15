@@ -49,6 +49,11 @@ static esp_err_t configure_nvs_flash(void)
     return ret;
 }
 
+bool wifi_network_ready(void)
+{
+    return wifi_connected;
+}
+
 void wifi_connect(void)
 {
     ESP_ERROR_CHECK(configure_nvs_flash());

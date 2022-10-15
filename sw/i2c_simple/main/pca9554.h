@@ -2,6 +2,9 @@
  * @file PCA9554 I2C GPIO controller (connected to an RGB,W,IR LED)
  */
 
+#ifndef INTELLILIGHT_PCA9554_H
+#define INTELLILIGHT_PCA9554_H
+
 /* system includes */
 #include "esp_err.h"
 
@@ -41,3 +44,5 @@ extern esp_err_t pca9554_configure(void);
  * @return ESP error code
  */
 extern esp_err_t pca9554_enable_led(const uint8_t led_pin, const bool on);
+
+#endif

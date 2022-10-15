@@ -15,6 +15,8 @@ static const char *log_tag = "kasa";
 const char * tplink_kasa_turn_on = "{\"smartlife.iot.smartbulb.lightingservice\": {\"transition_light_state\": {\"on_off\": 1, \"ignore_default\": 1}}}";
 const char * tplink_kasa_turn_off = "{\"smartlife.iot.smartbulb.lightingservice\": {\"transition_light_state\": {\"on_off\": 0, \"ignore_default\": 1}}}";
 
+//{"smartlife.iot.smartbulb.lightingservice": {"transition_light_state": {"hue": 0, "saturation": 0, "color_temp": 0, "brightness": 100, "on_off": 1, "ignore_default": 1}}}
+
 union payload_header
 {
   char bytes[4];

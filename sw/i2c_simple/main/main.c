@@ -11,6 +11,7 @@
 #include <driver/i2c.h>
 
 /* local includes */
+#include "colours.h"
 #include "i2c_common.h"
 #include "pca9554.h"
 #include "tplink_kasa.h"
@@ -19,7 +20,9 @@
 #include "wifi.h"
 
 
-
+/**
+ * @brief Flag to remember the current state of the smart bulb
+ */
 static bool smartbulb_on = false;
 
 /**
@@ -28,7 +31,9 @@ static bool smartbulb_on = false;
 void app_main(void)
 {
     const char *log_tag = "intellilight";
-    uint16_t red_value, green_value, blue_value, proximity;
+    uint16_t proximity;
+    struct rgb_colour rgb;
+    struct hsv_colour hsv;
 
     /* setup I2C bus as master */
     ESP_LOGI(log_tag, "Configuring ESP as I2C master");
@@ -55,8 +60,12 @@ void app_main(void)
     vTaskDelay(500 / portTICK_RATE_MS);
     pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, false);
 
-    /* connect to the configured WiFi network */
+    /* connect to the configured WiFi network and wait till connected */
     wifi_connect();
+    ESP_LOGI(log_tag, "Waiting for IP address");
+    while ( !wifi_network_ready() ) {
+        vTaskDelay(500 / portTICK_RATE_MS);
+    }
 
     /* turn off smart bulb to begin with */
     tplink_kasa_encrypt_and_send(tplink_kasa_turn_off);
@@ -67,11 +76,12 @@ void app_main(void)
     {
         vTaskDelay(500 / portTICK_RATE_MS);
 
-        red_value   = veml3328_read_channel(VEML3328_COMMAND_R_DATA);
-        green_value = veml3328_read_channel(VEML3328_COMMAND_G_DATA);
-        blue_value  = veml3328_read_channel(VEML3328_COMMAND_B_DATA);
-        proximity   = vcnl4035_read_proximity();
-        ESP_LOGI(log_tag, "RGB=%d,%d,%d P=%d", red_value, green_value, blue_value, proximity);
+        rgb = veml3328_read_colour();
+        hsv = colours_rgb_to_hsv(rgb);
+        proximity = vcnl4035_read_proximity();
+
+        ESP_LOGI(log_tag, "RGB=%d,%d,%d P=%d", rgb.r, rgb.g, rgb.b, proximity);
+        ESP_LOGI(log_tag, "HSV=%.0f,%.0f,%.0f", hsv.h/2.55, hsv.s/2.55, hsv.v/2.55);
 
         /* turn on smartbulb and green LED when user is close to the sensor */
         const bool requested_on = proximity > 10;
