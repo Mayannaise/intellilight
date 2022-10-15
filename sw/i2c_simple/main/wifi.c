@@ -112,7 +112,6 @@ bool wifi_tcp_transfer(const char *payload, const int length)
         ESP_LOGE(log_tag, "Socket unable to connect to %s: errno %d", CONFIG_SMARTBULB_IP_ADDRESS, errno);
         return false;
     }
-    ESP_LOGI(log_tag, "Connected to %s", CONFIG_SMARTBULB_IP_ADDRESS);
 
     /* send payload */
     err = send(sock, payload, length, 0);
@@ -127,11 +126,6 @@ bool wifi_tcp_transfer(const char *payload, const int length)
         ESP_LOGE(log_tag, "TCP recv error: %d", errno);
         return false;
     }
-
-    /* log tx/rx buffers */
-    rx_buffer[len] = 0;
-    ESP_LOGI(log_tag, "Sent: %s", payload);
-    ESP_LOGI(log_tag, "Recv: %s", rx_buffer);
 
     /* shutdown socket */
     shutdown(sock, 0);

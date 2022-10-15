@@ -44,7 +44,17 @@ esp_err_t vcnl4035_configure(void)
 
 uint16_t vcnl4035_read_ambient_light(void)
 {
-    return 0;
+    uint8_t rx_data[2];
+    const uint8_t tx_data[1] = {VCNL4035_COMMAND_ALS_DATA};
+
+    const esp_err_t err = i2c_master_write_read_device(
+        I2C_MASTER_NUM, VCNL4035X01_I2C_SLAVE_ADDR,
+        tx_data, sizeof(tx_data), rx_data, sizeof(rx_data),
+        I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
+
+    ESP_ERROR_CHECK(err);
+
+    return ((uint16_t)rx_data[1] << 8) | (uint16_t)rx_data[0];
 }
 
 uint16_t vcnl4035_read_proximity(void)

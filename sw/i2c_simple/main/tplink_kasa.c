@@ -12,10 +12,9 @@
 
 
 static const char *log_tag = "kasa";
-const char * tplink_kasa_turn_on = "{\"smartlife.iot.smartbulb.lightingservice\": {\"transition_light_state\": {\"on_off\": 1, \"ignore_default\": 1}}}";
-const char * tplink_kasa_turn_off = "{\"smartlife.iot.smartbulb.lightingservice\": {\"transition_light_state\": {\"on_off\": 0, \"ignore_default\": 1}}}";
-
-//{"smartlife.iot.smartbulb.lightingservice": {"transition_light_state": {"hue": 0, "saturation": 0, "color_temp": 0, "brightness": 100, "on_off": 1, "ignore_default": 1}}}
+const char * tplink_kasa_turn_on = "{\"smartlife.iot.smartbulb.lightingservice\": {\"transition_light_state\": {\"on_off\": 1}}}";
+const char * tplink_kasa_turn_off = "{\"smartlife.iot.smartbulb.lightingservice\": {\"transition_light_state\": {\"on_off\": 0}}}";
+const char * tplink_kasa_brightness = "{\"smartlife.iot.smartbulb.lightingservice\": {\"transition_light_state\": {\"brightness\": %d}}}";
 
 union payload_header
 {
@@ -49,7 +48,7 @@ bool tplink_kasa_encrypt_and_send(const char * json_string)
     const int encrypted_length = strlen(json_string) + sizeof(union payload_header);
     char * encrypted_payload = malloc(encrypted_length);
 
-    ESP_LOGI(log_tag, "Encrypting %d bytes", encrypted_length);
+    ESP_LOGD(log_tag, "Encrypting %d bytes", encrypted_length);
     tplink_kasa_encrypt(json_string, encrypted_payload);
 
     const bool result = wifi_tcp_transfer(encrypted_payload, encrypted_length);
