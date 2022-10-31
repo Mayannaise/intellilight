@@ -27,6 +27,7 @@
 struct smart_bulb_state
 {
     bool on_off;            /*!< Current on/off state of the smartbulb */
+    int hyst_counter;       /*!< Hyteresis counter to prevent toggling on/off too much */
     uint8_t brightness;     /*!< Current brightness (in percent) of the smartbulb */
     struct hsv_colour hsv;  /*!< Current colour (in HSV) of the smartbulb */
 } current_state;
@@ -40,6 +41,9 @@ void app_main(void)
     uint16_t proximity, ambient;
     struct rgb_colour rgb;
     struct hsv_colour hsv;
+    const float max_brightness = 100.0;
+    const float min_brightness = 20.0;
+    const float scale_brightness = 1.2;
     char command[200];
 
     /* setup I2C bus as master */
@@ -69,10 +73,8 @@ void app_main(void)
     tplink_kasa_encrypt_and_send(command);
     current_state.on_off = false;
 
-    /* everything ready, flash the green LED */
+    /* everything ready, turn on the green LED */
     pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, true);
-    vTaskDelay(1000 / portTICK_RATE_MS);
-    pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, false);
 
     /* periodically read from the sensors */
     while (true)
@@ -85,23 +87,37 @@ void app_main(void)
         hsv = colours_rgb_to_hsv(rgb);
         proximity = vcnl4035_read_proximity();
         ambient = vcnl4035_read_ambient_light();
-        ESP_LOGD(log_tag, "RGB=%d,%d,%d P=%d A=%d", rgb.r, rgb.g, rgb.b, proximity, ambient);
+        ESP_LOGI(log_tag, "RGB=%d,%d,%d P=%d A=%d", rgb.r, rgb.g, rgb.b, proximity, ambient);
 
         /* turn on smartbulb based on the proximity sensor value */
         /* i.e. when user is close to the sensor */
-        const bool requested_on = proximity > 10;
+        const bool requested_on = (proximity > 4);
         if (requested_on != current_state.on_off)
         {
-            ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
-            snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
-            tplink_kasa_encrypt_and_send(command);
-            current_state.on_off = requested_on;
+            if (current_state.hyst_counter++ > 2)
+            {
+                ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
+                snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
+                tplink_kasa_encrypt_and_send(command);
+                current_state.on_off = requested_on;
+                current_state.hyst_counter = 0;
+            }
+        }
+        else
+        {
+            current_state.hyst_counter = 0;
+        }
+
+        /* if the bulb is off dont bother trying to change the color and brightness*/
+        if (!current_state.on_off)
+        {
+            continue;
         }
 
         /* set smart bulb brightness based on ambient light level */
-        /* only update if new brightness is > 5% different from current brightness */
-        const uint8_t brightness = fmin((ambient / 10.0), 100.0);
-        if ( abs(brightness - current_state.brightness) > 5 )
+        /* only update if new brightness is > 10% different from current brightness */
+        const uint8_t brightness = fmax(fmin((ambient / scale_brightness), max_brightness), min_brightness);
+        if ( abs(brightness - current_state.brightness) > 10 )
         {
             ESP_LOGI(log_tag, "Setting smartbulb brightness to %d%%", brightness);   
             snprintf(command, sizeof(command), tplink_kasa_brightness, brightness);
