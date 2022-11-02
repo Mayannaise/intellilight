@@ -61,7 +61,7 @@ void app_main(void)
     wifi_connect();
     vTaskDelay(1000 / portTICK_RATE_MS);
 
-    /* wait till netowrk is ready */
+    /* wait till network is ready */
     pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true);
     ESP_LOGI(log_tag, "Waiting for IP address");
     while ( !wifi_network_ready() ) {
@@ -91,7 +91,7 @@ void app_main(void)
 
         /* turn on smartbulb based on the proximity sensor value */
         /* i.e. when user is close to the sensor */
-        const bool requested_on = (proximity > 4);
+        const bool requested_on = (proximity > 3);
         if (requested_on != current_state.on_off)
         {
             if (current_state.hyst_counter++ > 2)
@@ -130,7 +130,7 @@ void app_main(void)
         if ( abs(current_state.hsv.h - hsv.h) > 5 )
         {
             ESP_LOGI(log_tag, "Setting smartbulb hue to %.0f degrees", hsv.h);   
-            snprintf(command, sizeof(command), tplink_kasa_hsv, hsv.h, 100);
+            snprintf(command, sizeof(command), tplink_kasa_hsv, (int)round(hsv.h), 100);
             tplink_kasa_encrypt_and_send(command);
             current_state.hsv = hsv;
         }
