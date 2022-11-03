@@ -63,7 +63,7 @@ void app_main(void)
 
     /* wait till network is ready */
     pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true);
-    ESP_LOGI(log_tag, "Waiting for IP address");
+    ESP_LOGI(log_tag, "Waiting for connection to smartbulb");
     while ( !wifi_network_ready() ) {
         vTaskDelay(500 / portTICK_RATE_MS);
     }
@@ -73,13 +73,13 @@ void app_main(void)
     tplink_kasa_encrypt_and_send(command);
     current_state.on_off = false;
 
-    /* everything ready, turn on the green LED */
-    pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, true);
-
     /* periodically read from the sensors */
     while (true)
     {
-        /* wait 500ms */
+        /* turn off green LED when reading the colour sensor to avoid feedback */
+        pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, true);
+        vTaskDelay(500 / portTICK_RATE_MS);
+        pca9554_enable_led(PCA9554_GREEN_LED_GPIO_PIN, false);
         vTaskDelay(500 / portTICK_RATE_MS);
 
         /* read from all the sensors */
@@ -91,23 +91,15 @@ void app_main(void)
 
         /* turn on smartbulb based on the proximity sensor value */
         /* i.e. when user is close to the sensor */
-        const bool requested_on = (proximity > 3);
+        const bool requested_on = (proximity > 5);
         if (requested_on != current_state.on_off)
         {
-            if (current_state.hyst_counter++ > 2)
-            {
-                ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
-                snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
-                tplink_kasa_encrypt_and_send(command);
-                current_state.on_off = requested_on;
-                current_state.hyst_counter = 0;
-            }
-        }
-        else
-        {
+            ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
+            snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
+            tplink_kasa_encrypt_and_send(command);
+            current_state.on_off = requested_on;
             current_state.hyst_counter = 0;
         }
-
         /* if the bulb is off dont bother trying to change the color and brightness*/
         if (!current_state.on_off)
         {
