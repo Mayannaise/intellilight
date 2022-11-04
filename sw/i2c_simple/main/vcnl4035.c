@@ -24,7 +24,7 @@ static esp_err_t vcnl4035_configure_als(void)
 
 static esp_err_t vcnl4035_configure_ps(void)
 {
-    const uint8_t PS_CONF1 = 0x00;
+    const uint8_t PS_CONF1 = 0x0E;
     const uint8_t PS_CONF2 = 0x00;
     const uint8_t write_buf[3] = {VCNL4035_COMMAND_PS_CONF, PS_CONF1, PS_CONF2};
 
