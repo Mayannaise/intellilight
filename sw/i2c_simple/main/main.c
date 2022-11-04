@@ -27,10 +27,35 @@
 struct smart_bulb_state
 {
     bool on_off;            /*!< Current on/off state of the smartbulb */
-    int hyst_counter;       /*!< Hyteresis counter to prevent toggling on/off too much */
     uint8_t brightness;     /*!< Current brightness (in percent) of the smartbulb */
     struct hsv_colour hsv;  /*!< Current colour (in HSV) of the smartbulb */
 } current_state;
+
+/**
+ * @brief Parameters used to scale raw sensor readings to useful data
+ */
+struct sensor_scale
+{
+    const uint16_t min_raw;       /*!< Raw minimum value */
+    const uint16_t max_raw;       /*!< Raw maximum value */
+    const uint8_t  min_scaled;    /*!< Scaled minimum value */
+    const uint8_t  max_scaled;    /*!< Scaled maximum value */
+};
+
+/**
+ * @brief Scale raw sensor readings
+ * @param reading Raw sensor value to scale
+ * @param scale Sensor scaling data
+ * @return Scaled value
+ */
+uint8_t scale_sensor_reading(const uint16_t reading, const struct sensor_scale scale)
+{
+    const uint16_t clipped_value = fmin(fmax(reading, scale.min_raw), scale.max_raw);
+    const uint16_t range_raw = scale.max_raw - scale.min_raw;
+    const uint16_t range_scaled = scale.max_scaled - scale.min_scaled;
+    const float factor = ((clipped_value - scale.min_raw) / (float)range_raw);
+    return (uint8_t)round((range_scaled * factor) + scale.min_scaled);
+}
 
 /**
  * @brief Application main entry point
@@ -41,9 +66,7 @@ void app_main(void)
     uint16_t proximity, ambient;
     struct rgb_colour rgb;
     struct hsv_colour hsv;
-    const float max_brightness = 100.0;
-    const float min_brightness = 20.0;
-    const float scale_brightness = 1.2;
+    const struct sensor_scale als_scale = {10, 70, 20, 100};
     char command[200];
 
     /* setup I2C bus as master */
@@ -98,7 +121,6 @@ void app_main(void)
             snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
             tplink_kasa_encrypt_and_send(command);
             current_state.on_off = requested_on;
-            current_state.hyst_counter = 0;
         }
         /* if the bulb is off dont bother trying to change the color and brightness*/
         if (!current_state.on_off)
@@ -108,7 +130,7 @@ void app_main(void)
 
         /* set smart bulb brightness based on ambient light level */
         /* only update if new brightness is > 10% different from current brightness */
-        const uint8_t brightness = fmax(fmin((ambient / scale_brightness), max_brightness), min_brightness);
+        const uint8_t brightness = scale_sensor_reading(ambient, als_scale);
         if ( abs(brightness - current_state.brightness) > 10 )
         {
             ESP_LOGI(log_tag, "Setting smartbulb brightness to %d%%", brightness);   
@@ -118,11 +140,11 @@ void app_main(void)
         }
 
         /* set smart bulb colour (hue/saturation) based on measured room light colour */
-        /* only update if new hue is > 5 degrees different from current hue */
-        if ( abs(current_state.hsv.h - hsv.h) > 5 )
+        /* only update if new hue is > 10 degrees different from current hue */
+        if ( abs(current_state.hsv.h - hsv.h) > 10 )
         {
             ESP_LOGI(log_tag, "Setting smartbulb hue to %.0f degrees", hsv.h);   
-            snprintf(command, sizeof(command), tplink_kasa_hsv, (int)round(hsv.h), 100);
+            snprintf(command, sizeof(command), tplink_kasa_hsv, (int)round(hsv.h), 50);
             tplink_kasa_encrypt_and_send(command);
             current_state.hsv = hsv;
         }
