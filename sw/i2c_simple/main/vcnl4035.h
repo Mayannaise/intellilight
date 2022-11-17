@@ -17,11 +17,15 @@
 
 #define VCNL4035_COMMAND_ALS_CONF      0x00    /*<! Command code to configure the ALS_CONF1/2 registers */
 #define VCNL4035_COMMAND_PS_CONF       0x03    /*<! Command code to configure the PS_CONF1/2 registers */
+#define VCNL4035_COMMAND_PS_THDL       0x06    /*<! Command code to configure the PS_THDL register */
+#define VCNL4035_COMMAND_PS_THDH       0x07    /*<! Command code to configure the PS_THDL register */
 
 #define VCNL4035_COMMAND_PS1_DATA      0x08    /*<! Command code to perform a readback of PS1 */
 #define VCNL4035_COMMAND_PS2_DATA      0x09    /*<! Command code to perform a readback of PS2 */
 #define VCNL4035_COMMAND_PS3_DATA      0x0A    /*<! Command code to perform a readback of PS3 */
 #define VCNL4035_COMMAND_ALS_DATA      0x0B    /*<! Command code to perform a readback of ALS */
+#define VCNL4035_COMMAND_INT_FLAG      0x0D    /*<! Command code to perform a readback of INT flag */
+#define VCNL4035_PS_IF_CLOSE_BIT       0x01    /*<! Bit number of INT_Flag register indicating PS_THDH INT trigger event */
 
 
 /**
@@ -41,5 +45,11 @@ extern uint16_t vcnl4035_read_ambient_light(void);
  * @return Raw reading from sensor
  */
 extern uint16_t vcnl4035_read_proximity(void);
+
+/**
+ * @brief Read the proximity INT flag
+ * @return INT flag value
+ */
+extern uint8_t vcnl4035_read_int_flag(void);
 
 #endif

@@ -8,8 +8,12 @@
 #include <string.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <esp_log.h>
-#include <driver/i2c.h>
+
+/* ESP-IDF includes */
+#include "esp_log.h"
+#include "esp_sleep.h"
+#include "driver/i2c.h"
+#include "driver/rtc_io.h"
 
 /* local includes */
 #include "colours.h"
@@ -62,11 +66,16 @@ uint8_t scale_sensor_reading(const uint16_t reading, const struct sensor_scale s
  */
 void app_main(void)
 {
+    /* application constants */
     const char *log_tag = "intellilight";
+    const struct sensor_scale als_scale = {10, 70, 20, 100};
+    //const gpio_num_t interrupt_pin = GPIO_NUM_0;
+
+    /* runtime variables */
     uint16_t proximity, ambient;
     struct rgb_colour rgb;
     struct hsv_colour hsv;
-    const struct sensor_scale als_scale = {10, 70, 20, 100};
+    uint8_t int_flag;
     char command[200];
 
     /* setup I2C bus as master */
@@ -79,14 +88,21 @@ void app_main(void)
     ESP_ERROR_CHECK(pca9554_configure());   /* RGB LED and arrow LEDs */
     ESP_ERROR_CHECK(veml3328_configure());  /* colour sensor */
 
+    /* configure ext0 interrupt to trigger on logic low (0) from VCNL proximity sensor */
+    //esp_sleep_enable_ext0_wakeup(interrupt_pin, 0);
+    //rtc_gpio_init(interrupt_pin);
+    //rtc_gpio_set_direction(interrupt_pin, RTC_GPIO_MODE_INPUT_ONLY);
+    //rtc_gpio_pullup_en(interrupt_pin);
+
     /* connect to the configured WiFi network */
+    ESP_LOGI(log_tag, "Conecting to WiFi");
     pca9554_enable_led(PCA9554_RED_LED_GPIO_PIN, true);
     wifi_connect();
     vTaskDelay(1000 / portTICK_RATE_MS);
 
     /* wait till network is ready */
-    pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true);
     ESP_LOGI(log_tag, "Waiting for connection to smartbulb");
+    pca9554_enable_led(PCA9554_BLUE_LED_GPIO_PIN, true);
     while ( !wifi_network_ready() ) {
         vTaskDelay(500 / portTICK_RATE_MS);
     }
@@ -97,6 +113,7 @@ void app_main(void)
     current_state.on_off = false;
 
     /* periodically read from the sensors */
+    ESP_LOGI(log_tag, "Entering main loop");
     while (true)
     {
         /* turn off green LED when reading the colour sensor to avoid feedback */
@@ -109,20 +126,31 @@ void app_main(void)
         rgb = veml3328_read_colour();
         hsv = colours_rgb_to_hsv(rgb);
         proximity = vcnl4035_read_proximity();
+        int_flag = vcnl4035_read_int_flag();
         ambient = vcnl4035_read_ambient_light();
-        ESP_LOGI(log_tag, "RGB=%d,%d,%d P=%d A=%d", rgb.r, rgb.g, rgb.b, proximity, ambient);
+        ESP_LOGI(log_tag, "RGB=%d,%d,%d P=%d A=%d INT=%d", rgb.r, rgb.g, rgb.b, proximity, ambient, int_flag);
 
         /* turn on smartbulb based on the proximity sensor value */
         /* i.e. when user is close to the sensor */
-        const bool requested_on = (proximity > 60);
+        const bool requested_on = (proximity > 100);
         if (requested_on != current_state.on_off)
         {
             ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");
             snprintf(command, sizeof(command), tplink_kasa_on_off, requested_on);
             tplink_kasa_encrypt_and_send(command);
             current_state.on_off = requested_on;
+
+            /* if the bulb is now turned off, */
+            /* enter deep-sleep mode and wait till the VCNL4035 wakes it up again */
+            if (!requested_on)
+            {
+                /* go to sleep */
+                //ESP_LOGI(log_tag, "Wake me up before you go-go...");
+                //esp_deep_sleep_start();
+            }
         }
-        /* if the bulb is off dont bother trying to change the color and brightness*/
+
+        /* if the bulb is off, don't bother setting the colour and brightness */
         if (!current_state.on_off)
         {
             continue;
