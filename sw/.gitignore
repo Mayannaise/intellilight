@@ -2,5 +2,4 @@ build/
 .devcontainer/
 .vscode/
 sdkconfig*
-sdkconfig
 debug.log
