@@ -4,6 +4,7 @@
  
  /* system includes */
 #include "driver/i2c.h"
+#include "esp_log.h"
 
 /* local includes */
 #include "i2c_common.h"
@@ -25,14 +26,15 @@ static esp_err_t vcnl4035_configure_als(void)
 static esp_err_t vcnl4035_configure_ps(void)
 {
     const uint8_t PS_CONF1 = 0x0E; /* integration time = 8T (max), PS=enabled */
-    const uint8_t PS_CONF2 = 0x01; /* enable the proximity "trigger close" interrupt */
-    const uint8_t PS_CONF3 = 0x12; /* enable smart persistence, enable logic output */
-    const uint8_t PS_MS    = 0x07; /* 200mA IR LED current*/
+    const uint8_t PS_CONF2 = 0x09; /* 16bit data, enable interrupt */
+    const uint8_t PS_CONF3 = 0x00; /* default values */
+    const uint8_t PS_MS    = 0x07; /* 200mA IR LED current */
 
     const uint8_t write_buf1[3] = { VCNL4035_COMMAND_PS_CONF,     PS_CONF1, PS_CONF2 };
     const uint8_t write_buf2[3] = { VCNL4035_COMMAND_PS_CONF + 1, PS_CONF3, PS_MS    };
     const uint8_t write_buf3[3] = { VCNL4035_COMMAND_PS_THDH,     100,      0        };
-    
+    const uint8_t write_buf4[3] = { VCNL4035_COMMAND_PS_THDL,     70,       0        };
+
     const esp_err_t err1 = i2c_master_write_to_device(
         I2C_MASTER_NUM, VCNL4035X01_I2C_SLAVE_ADDR,
         write_buf1, sizeof(write_buf1),
@@ -48,7 +50,12 @@ static esp_err_t vcnl4035_configure_ps(void)
         write_buf3, sizeof(write_buf3),
         I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
 
-    return err1 | err2 | err3;
+    const esp_err_t err4 = i2c_master_write_to_device(
+        I2C_MASTER_NUM, VCNL4035X01_I2C_SLAVE_ADDR,
+        write_buf4, sizeof(write_buf4),
+        I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
+
+    return err1 | err2 | err3 | err4;
 }
 
 esp_err_t vcnl4035_configure(void)
@@ -56,6 +63,8 @@ esp_err_t vcnl4035_configure(void)
     const esp_err_t ps_err = vcnl4035_configure_ps();
     const esp_err_t als_err = vcnl4035_configure_als();
 
+    ESP_LOGI("vcnl4035", "Device ID: %d", vcnl4035_read_device_id());
+    
     return als_err | ps_err;
 }
 
@@ -102,4 +111,19 @@ uint8_t vcnl4035_read_int_flag(void)
     ESP_ERROR_CHECK(err);
 
     return rx_data[1];
+}
+
+uint16_t vcnl4035_read_device_id(void)
+{
+    uint8_t rx_data[2];
+    const uint8_t tx_data[1] = { VCNL4035_COMMAND_DEVICE_ID };
+
+    const esp_err_t err = i2c_master_write_read_device(
+        I2C_MASTER_NUM, VCNL4035X01_I2C_SLAVE_ADDR,
+        tx_data, sizeof(tx_data), rx_data, sizeof(rx_data),
+        I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
+
+    ESP_ERROR_CHECK(err);
+
+    return ((uint16_t)rx_data[1] << 8) | (uint16_t)rx_data[0];
 }

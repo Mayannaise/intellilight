@@ -68,14 +68,15 @@ void app_main(void)
 {
     /* application constants */
     const char *log_tag = "intellilight";
-    const struct sensor_scale als_scale = {10, 70, 20, 100};
-    //const gpio_num_t interrupt_pin = GPIO_NUM_0;
+    const struct sensor_scale als_scale = { 10, 70, 20, 100 };
+    const gpio_num_t interrupt_pin = GPIO_NUM_4;
 
     /* runtime variables */
-    uint16_t proximity, ambient;
+    uint16_t proximity = 0;
+    uint16_t ambient = 0;
     struct rgb_colour rgb;
     struct hsv_colour hsv;
-    uint8_t int_flag;
+    uint8_t int_flag = 0;
     char command[200];
 
     /* setup I2C bus as master */
@@ -89,10 +90,10 @@ void app_main(void)
     ESP_ERROR_CHECK(veml3328_configure());  /* colour sensor */
 
     /* configure ext0 interrupt to trigger on logic low (0) from VCNL proximity sensor */
-    //esp_sleep_enable_ext0_wakeup(interrupt_pin, 0);
-    //rtc_gpio_init(interrupt_pin);
-    //rtc_gpio_set_direction(interrupt_pin, RTC_GPIO_MODE_INPUT_ONLY);
-    //rtc_gpio_pullup_en(interrupt_pin);
+    esp_sleep_enable_ext0_wakeup(interrupt_pin, 0);
+    rtc_gpio_init(interrupt_pin);
+    rtc_gpio_set_direction(interrupt_pin, RTC_GPIO_MODE_INPUT_ONLY);
+    rtc_gpio_pullup_en(interrupt_pin);
 
     /* connect to the configured WiFi network */
     ESP_LOGI(log_tag, "Conecting to WiFi");
@@ -123,10 +124,10 @@ void app_main(void)
         vTaskDelay(500 / portTICK_RATE_MS);
 
         /* read from all the sensors */
+        int_flag = vcnl4035_read_int_flag();
         rgb = veml3328_read_colour();
         hsv = colours_rgb_to_hsv(rgb);
         proximity = vcnl4035_read_proximity();
-        int_flag = vcnl4035_read_int_flag();
         ambient = vcnl4035_read_ambient_light();
         ESP_LOGI(log_tag, "RGB=%d,%d,%d P=%d A=%d INT=%d", rgb.r, rgb.g, rgb.b, proximity, ambient, int_flag);
 
@@ -145,8 +146,8 @@ void app_main(void)
             if (!requested_on)
             {
                 /* go to sleep */
-                //ESP_LOGI(log_tag, "Wake me up before you go-go...");
-                //esp_deep_sleep_start();
+                ESP_LOGI(log_tag, "Wake me up before you go-go...");
+                esp_deep_sleep_start();
             }
         }
 
