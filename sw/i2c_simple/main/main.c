@@ -133,7 +133,7 @@ void app_main(void)
 
         /* turn on smartbulb based on the proximity sensor value */
         /* i.e. when user is close to the sensor */
-        const bool requested_on = (proximity > 100);
+        const bool requested_on = (proximity > vcnl4035_proximity_threshold);
         if (requested_on != current_state.on_off)
         {
             ESP_LOGI(log_tag, "Turning %s smartbulb", requested_on ? "on" : "off");

@@ -30,10 +30,10 @@ static esp_err_t vcnl4035_configure_ps(void)
     const uint8_t PS_CONF3 = 0x00; /* default values */
     const uint8_t PS_MS    = 0x07; /* 200mA IR LED current */
 
-    const uint8_t write_buf1[3] = { VCNL4035_COMMAND_PS_CONF,     PS_CONF1, PS_CONF2 };
-    const uint8_t write_buf2[3] = { VCNL4035_COMMAND_PS_CONF + 1, PS_CONF3, PS_MS    };
-    const uint8_t write_buf3[3] = { VCNL4035_COMMAND_PS_THDH,     100,      0        };
-    const uint8_t write_buf4[3] = { VCNL4035_COMMAND_PS_THDL,     70,       0        };
+    const uint8_t write_buf1[3] = { VCNL4035_COMMAND_PS_CONF, PS_CONF1, PS_CONF2 };
+    const uint8_t write_buf2[3] = { VCNL4035_COMMAND_PS_CONF + 1, PS_CONF3, PS_MS };
+    const uint8_t write_buf3[3] = { VCNL4035_COMMAND_PS_THDH, (uint8_t)(vcnl4035_proximity_threshold & 0xFF), (uint8_t)(vcnl4035_proximity_threshold >> 8) };
+    const uint8_t write_buf4[3] = { VCNL4035_COMMAND_PS_THDL, (uint8_t)(vcnl4035_proximity_threshold & 0xFF), (uint8_t)(vcnl4035_proximity_threshold >> 8) };
 
     const esp_err_t err1 = i2c_master_write_to_device(
         I2C_MASTER_NUM, VCNL4035X01_I2C_SLAVE_ADDR,

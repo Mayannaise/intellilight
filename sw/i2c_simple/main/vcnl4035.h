@@ -26,6 +26,7 @@
 #define VCNL4035_COMMAND_INT_FLAG      0x0D    /*<! Command code to perform a readback of INT flag */
 #define VCNL4035_COMMAND_DEVICE_ID     0x0E    /*<! Command code to read device ID */
 
+#define vcnl4035_proximity_threshold   100     /*<! Distance over which the smartbulb should be turned on */
 
 /**
  * @brief Configure the VCNL4035 proximity and ambient light sensor
